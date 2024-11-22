@@ -3,24 +3,17 @@ package com.dicoding.picodiploma.loginwithanimation.view.upload
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserPreference
@@ -29,18 +22,16 @@ import com.dicoding.picodiploma.loginwithanimation.data.remote.ApiConfig
 import com.dicoding.picodiploma.loginwithanimation.data.response.AddStoryResponse
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityUploadBinding
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
-import java.io.File
+
 
 class UploadActivity : AppCompatActivity() {
 
@@ -48,12 +39,17 @@ class UploadActivity : AppCompatActivity() {
     private lateinit var pref: UserPreference
     private var currentImageUri: Uri? = null
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private var currentLat: Float? = null
+    private var currentLon: Float? = null
+
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
                 Toast.makeText(this, "Permission request granted", Toast.LENGTH_LONG).show()
+                getDeviceLocation()
             } else {
                 Toast.makeText(this, "Permission request denied", Toast.LENGTH_LONG).show()
             }
@@ -69,16 +65,52 @@ class UploadActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityUploadBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         pref = UserPreference.getInstance(dataStore)
 
         if (!allPermissionsGranted()) {
             requestPermissionLauncher.launch(REQUIRED_PERMISSION)
         }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        } else {
+            getDeviceLocation()  // Panggil setelah memastikan izin diberikan
+        }
 
         binding.btnGallery.setOnClickListener { startGallery() }
         binding.btnCamera.setOnClickListener { startCamera() }
         binding.btnUpload.setOnClickListener { uploadImage() }
+    }
+
+    private fun getDeviceLocation() {
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                currentLat = location.latitude.toFloat()
+                currentLon = location.longitude.toFloat()
+                Log.d("Location", "Lat: $currentLat, Lon: $currentLon")
+            } else {
+                showToast("Unable to fetch location.")
+            }
+        }.addOnFailureListener {
+            showToast("Failed to get location: ${it.message}")
+        }
     }
 
     private fun startGallery() {
@@ -124,6 +156,10 @@ class UploadActivity : AppCompatActivity() {
             Log.d("Image File", "showImage: ${imageFile.path}")
             val description = binding.etDescription.text.toString().trim()
 
+            if (currentLat == null || currentLon == null) {
+                showToast("Location not available. Try again.")
+                return
+            }
             showLoading(true)
 
             val requestBody = description.toRequestBody("text/plain".toMediaType())
@@ -138,7 +174,11 @@ class UploadActivity : AppCompatActivity() {
                     val token = user.token
                     try {
                         val apiService = ApiConfig.getApiService(token)
-                        val successResponse = apiService.uploadStory("Bearer $token",multipartBody, requestBody)
+                        val successResponse = apiService.uploadStory("Bearer $token",
+                            multipartBody,
+                            requestBody,
+                            currentLat!!,
+                            currentLon!!)
                         successResponse.message?.let { showToast(it) }
                         showLoading(false)
                         Success()
