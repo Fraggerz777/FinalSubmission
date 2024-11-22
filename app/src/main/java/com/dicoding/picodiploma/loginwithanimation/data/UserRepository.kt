@@ -26,6 +26,10 @@ class UserRepository private constructor(
         return apiService.getStories(token)
     }
 
+    suspend fun getStoryWithLocation (token:String):StoryResponse{
+        return apiService.getStoriesWithLocation(token)
+    }
+
 
 
     fun getSession(): Flow<UserModel> {
