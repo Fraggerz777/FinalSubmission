@@ -27,5 +27,7 @@
     <string name="gallery">Gallery</string>
     <string name="upload">Upload</string>
     <string name="uploadSuccess">Upload berhasil!</string>
+    <string name="mapbtn">Map Button</string>
+    <string name="title_activity_maps">MapsActivity</string>
 
 </resources>

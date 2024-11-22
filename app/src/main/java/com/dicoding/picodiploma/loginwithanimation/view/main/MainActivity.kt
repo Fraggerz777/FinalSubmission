@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
+import com.dicoding.picodiploma.loginwithanimation.view.maps.MapsActivity
 import com.dicoding.picodiploma.loginwithanimation.view.upload.UploadActivity
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,10 @@ class MainActivity : AppCompatActivity(){
         }
         binding.addStoryFab.setOnClickListener {
             val intent = Intent(this, UploadActivity::class.java)
+            startActivity(intent)
+        }
+        binding.mapButton.setOnClickListener {
+            val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }
         setupView()

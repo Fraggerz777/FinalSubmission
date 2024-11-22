@@ -7,6 +7,16 @@
     android:layout_height="match_parent"
     tools:context=".view.main.MainActivity">
 
+    <ImageButton
+        android:id="@+id/mapButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/mapbtn"
+        android:src="@drawable/ic_map_black"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintEnd_toStartOf="@id/logoutButton"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp" />
 
     <Button
         android:id="@+id/logoutButton"
