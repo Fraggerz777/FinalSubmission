@@ -27,6 +27,14 @@ class StoryAdapter : PagingDataAdapter<ListStoryItem, StoryAdapter.StoryViewHold
         val story = getItem(position)
         story?.let {
             holder.bind(it)
+            holder.itemView.setOnClickListener {
+                val context = holder.itemView.context
+                val intent = Intent(context, DetailActivity::class.java)
+                intent.putExtra("STORY_NAME", story.name)
+                intent.putExtra("STORY_DESCRIPTION", story.description)
+                intent.putExtra("STORY_PHOTO_URL", story.photoUrl)
+                context.startActivity(intent)
+            }
         }
     }
 
@@ -40,6 +48,8 @@ class StoryAdapter : PagingDataAdapter<ListStoryItem, StoryAdapter.StoryViewHold
                 Glide.with(itemView.context)
                     .load(story.photoUrl)
                     .into(photoImage)
+
+
             }
         }
     }
