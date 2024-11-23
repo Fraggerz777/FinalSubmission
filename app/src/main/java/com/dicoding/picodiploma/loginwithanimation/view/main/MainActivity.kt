@@ -24,54 +24,59 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity() {
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
     private lateinit var binding: ActivityMainBinding
-    private lateinit var storyAdapter: StoryAdapter
+    private lateinit var pagingAdapter: StoryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         binding.storyRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        viewModel.stories.observe(this) { stories ->
-            if (!::storyAdapter.isInitialized) {
-                storyAdapter = StoryAdapter(stories)
-                binding.storyRecyclerView.adapter = storyAdapter
+        // Observer untuk stories yang sudah di-paging
+        viewModel.stories.observe(this) { pagingData ->
+            if (!::pagingAdapter.isInitialized) {
+                pagingAdapter = StoryAdapter()
+                binding.storyRecyclerView.adapter = pagingAdapter.withLoadStateFooter(
+                    footer = LoadingStateAdapter {
+                        pagingAdapter.retry()
+                    }
+                )
             }
+            pagingAdapter.submitData(lifecycle, pagingData)
         }
-        binding.storyRecyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Mengambil session data dan melakukan navigasi berdasarkan status login
+        // Mengecek session dan mengambil story
         viewModel.getSession().observe(this) { user ->
             if (!user.isLogin) {
+                // Arahkan ke WelcomeActivity jika belum login
                 startActivity(Intent(this, WelcomeActivity::class.java))
                 finish()
-            }
-            CoroutineScope(Dispatchers.Main).launch {
-                try {
-                    viewModel.getStory()
-                } catch (e: Exception) {
-                    Log.e("MainActivity", "Error: ${e.message}")
-                }
+            } else {
+                // Ambil data story jika sudah login
+                viewModel.getStory()
             }
         }
+
+        // Mengatur tombol untuk add story
         binding.addStoryFab.setOnClickListener {
             val intent = Intent(this, UploadActivity::class.java)
             startActivity(intent)
         }
+
+        // Mengatur tombol untuk menuju ke MapsActivity
         binding.mapButton.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }
+
         setupView()
         setupAction()
-
     }
 
     private fun setupView() {
@@ -92,5 +97,4 @@ class MainActivity : AppCompatActivity(){
             viewModel.logout()
         }
     }
-
 }

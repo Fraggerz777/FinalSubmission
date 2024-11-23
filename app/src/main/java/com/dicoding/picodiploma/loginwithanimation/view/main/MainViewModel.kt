@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
 import com.dicoding.picodiploma.loginwithanimation.data.UserRepository
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import com.dicoding.picodiploma.loginwithanimation.data.response.ListStoryItem
@@ -16,8 +17,8 @@ import retrofit2.HttpException
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
 
-    private val _stories = MutableLiveData<List<ListStoryItem>>()
-    val stories: LiveData<List<ListStoryItem>> get() = _stories
+    private val _stories = MutableLiveData<PagingData<ListStoryItem>>()
+    val stories: LiveData<PagingData<ListStoryItem>> get() = _stories
 
     private val _isLoading = MutableLiveData<Boolean>()
 
@@ -30,13 +31,11 @@ class MainViewModel(private val repository: UserRepository) : ViewModel() {
             _isLoading.value = true
             try {
                 val token = repository.getSession().first().token
-                val storyResponse = repository.getStory("Bearer $token")
-
-                val nonNullStoryList = storyResponse.listStory.filterNotNull() ?: emptyList()
-
-                _stories.value = nonNullStoryList
+                repository.getStoriesWithPaging(token).collect { pagingData ->
+                    _stories.value = pagingData
+                }
             } catch (e: Exception) {
-                // Tidak menampilkan pesan error
+                // Tangani error jika diperlukan
             } finally {
                 _isLoading.value = false
             }
