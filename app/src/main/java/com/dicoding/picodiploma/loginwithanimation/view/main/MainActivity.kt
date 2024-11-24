@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
             pagingAdapter.submitData(lifecycle, pagingData)
         }
 
+
+
         // Mengecek session dan mengambil story
         viewModel.getSession().observe(this) { user ->
             if (!user.isLogin) {

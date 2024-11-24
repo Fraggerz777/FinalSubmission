@@ -1,6 +1,7 @@
 package com.dicoding.picodiploma.loginwithanimation.view.main
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -26,21 +27,33 @@ class MainViewModel(private val repository: UserRepository) : ViewModel() {
         return repository.getSession().asLiveData()
     }
 
-    fun getStory() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val token = repository.getSession().first().token
-                repository.getStoriesWithPaging(token).collect { pagingData ->
-                    _stories.value = pagingData
-                }
-            } catch (e: Exception) {
-                // Tangani error jika diperlukan
-            } finally {
-                _isLoading.value = false
-            }
+    private val _userToken = MediatorLiveData<String>()
+    val userToken: LiveData<String> get() = _userToken
+
+    init {
+        _userToken.addSource(repository.getSession().asLiveData()) { userModel ->
+            _userToken.value = userModel.token
         }
     }
+
+    fun getStory() {
+        userToken.observeForever { token ->
+            _isLoading.value = true
+            viewModelScope.launch {
+                try {
+                    repository.getStoriesWithPaging(token).observeForever { pagingData ->
+                        _stories.value = pagingData
+                    }
+                } catch (e: Exception) {
+                    // Tangani error jika ada
+                } finally {
+                    _isLoading.value = false
+                }
+            }
+        }
+
+    }
+
     fun logout() {
         viewModelScope.launch {
             repository.logout()

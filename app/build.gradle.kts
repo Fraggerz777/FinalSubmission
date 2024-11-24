@@ -54,12 +54,24 @@ dependencies {
     implementation(libs.androidx.exifinterface)
     implementation(libs.play.services.maps)
     testImplementation(libs.junit)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.androidx.paging.runtime.ktx)
     implementation (libs.play.services.location)
 
+    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    testImplementation (libs.kotlinx.coroutines.test)
+    testImplementation (libs.androidx.core.testing)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+
+    testImplementation (libs.mockito.kotlin)
+
+
+    
     implementation (libs.kotlin.script.runtime)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

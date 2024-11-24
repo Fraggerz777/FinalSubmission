@@ -1,5 +1,7 @@
 package com.dicoding.picodiploma.loginwithanimation.data
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.asLiveData
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -14,7 +16,7 @@ import com.dicoding.picodiploma.loginwithanimation.data.response.RegisterRespons
 import com.dicoding.picodiploma.loginwithanimation.data.response.StoryResponse
 import kotlinx.coroutines.flow.Flow
 
-class UserRepository private constructor(
+open class UserRepository private constructor(
     private val apiService: ApiService,
     private val userPreference: UserPreference
 
@@ -27,11 +29,11 @@ class UserRepository private constructor(
     }
     suspend fun saveAuth(user: UserModel) = userPreference.saveSession(user)
 
-    fun getStoriesWithPaging(token: String): Flow<PagingData<ListStoryItem>> {
+    fun getStoriesWithPaging(token: String): LiveData<PagingData<ListStoryItem>> {
         return Pager(
             config = PagingConfig(pageSize = 20),
             pagingSourceFactory = { StoryPagingSource(apiService, token) }
-        ).flow
+        ).flow.asLiveData()
     }
 
     suspend fun getStoryWithLocation (token:String):StoryResponse{
