@@ -10,11 +10,7 @@ import androidx.paging.PagingData
 import com.dicoding.picodiploma.loginwithanimation.data.UserRepository
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import com.dicoding.picodiploma.loginwithanimation.data.response.ListStoryItem
-import com.dicoding.picodiploma.loginwithanimation.data.response.RegisterResponse
-import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
 

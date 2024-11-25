@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dicoding.picodiploma.loginwithanimation.data.UserRepository
 import com.dicoding.picodiploma.loginwithanimation.data.response.ListStoryItem
-import com.dicoding.picodiploma.loginwithanimation.data.response.StoryResponse
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

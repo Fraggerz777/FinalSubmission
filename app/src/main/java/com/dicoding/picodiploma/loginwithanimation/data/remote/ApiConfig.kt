@@ -1,6 +1,5 @@
 package com.dicoding.picodiploma.loginwithanimation.data.remote
 
-import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
